@@ -70,6 +70,7 @@ export const createApi = (logoutFn: () => void) => {
           isRefreshing = false;
           processQueue(refreshError as AxiosError);
           console.log("토큰 재발급 실패");
+          await instance.post("/auth/logout", {});
           logoutFn();
           return Promise.reject(refreshError);
         }
