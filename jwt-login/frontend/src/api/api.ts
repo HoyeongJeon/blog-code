@@ -5,7 +5,7 @@ import axios, {
   AxiosResponse,
 } from "axios";
 
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:8080";
 
 export const createApi = (logoutFn: () => void) => {
   const instance: AxiosInstance = axios.create({
@@ -59,8 +59,8 @@ export const createApi = (logoutFn: () => void) => {
 
         try {
           console.log("토큰 재발급 요청");
-          const response = await instance.post("/auth/rotate", {});
-          if (response.status === 201) {
+          const response = await instance.post("/v1/token/rotate", {});
+          if (response.status === 200) {
             isRefreshing = false;
             processQueue(null);
             console.log("토큰 재발급 성공");
@@ -70,7 +70,7 @@ export const createApi = (logoutFn: () => void) => {
           isRefreshing = false;
           processQueue(refreshError as AxiosError);
           console.log("토큰 재발급 실패");
-          await instance.post("/auth/logout", {});
+          await instance.post("/v1/logout", {});
           logoutFn();
           return Promise.reject(refreshError);
         }

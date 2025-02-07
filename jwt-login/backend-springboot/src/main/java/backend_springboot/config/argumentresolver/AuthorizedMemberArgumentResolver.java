@@ -40,7 +40,6 @@ public class AuthorizedMemberArgumentResolver implements HandlerMethodArgumentRe
 
         try {
             log.info("AuthorizedMemberArgumentResolver에서 access_token 검증 {}", accessToken);
-            // 토큰 검증 및 사용자 정보 추출
             Claims claims = jwtService.getPayload(accessToken);
             log.info("AuthorizedMemberArgumentResolver에서 claims 검증 {}", claims);
             Long userId = jwtService.extractMemberId(accessToken);

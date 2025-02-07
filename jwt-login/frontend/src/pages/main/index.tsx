@@ -6,14 +6,14 @@ export default function Main() {
   const logout = useAuthStore((state) => state.logout);
   const api = useApi();
   const handleLogout = async () => {
-    await api.post("/auth/logout");
+    await api.post("/v1/logout");
     logout();
   };
 
   useEffect(() => {
     const healthCheck = async () => {
       try {
-        const response = await api.get("/auth/health");
+        const response = await api.get("/health");
         console.log(response.data);
       } catch (error) {
         console.error("헬스체크에 실패했습니다.", error);
