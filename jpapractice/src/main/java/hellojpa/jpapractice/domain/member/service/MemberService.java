@@ -27,7 +27,7 @@ public class MemberService {
 
     @Transactional
     public void testAnnotation() {
-        System.out.println("// testAnnotation start");
+        System.out.println("// @Transactional + JPA");
         Member member = memberRepository.findById(1L).get(); // select , 1차 캐시 저장
 
         member.setAge(35); // 1차 캐시 값이 변경됨.
@@ -37,12 +37,13 @@ public class MemberService {
     }
 
     public void testNoneAnnotation() {
-        System.out.println("// testNoneAnnotation start");
-        Member member = memberRepository.findById(1L).get();
+        System.out.println("// JPA만 사용하기(@Transactional 이 없는 경우)");
+        Member member = memberRepository.findById(1L).get(); // select , @Transactional이 없으므로 1차 캐시 저장 X , 영속성 컨텍스트가 생성되지 않음, 준영속 상태이다.
 
-        member.setAge(35);
+        member.setAge(35); // 준영속 상태이므로 변경 감지가 일어나지 않음. 메모리 상의 age 값만 변경됨.
 
         memberRepository.save(member);
+        System.out.println("result: " + member.getAge());
     }
 
     @Transactional
