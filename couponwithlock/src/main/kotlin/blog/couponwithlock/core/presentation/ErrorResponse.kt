@@ -10,14 +10,6 @@ data class ErrorResponse(
 ) : BaseResponse(false, LocalDateTime.now()) {
 
     companion object {
-        fun createErrorResponse(statusCode: Int, exception: Exception): ErrorResponse {
-            return ErrorResponse(
-                statusCode = statusCode,
-                code = exception.javaClass.simpleName,
-                message = exception.message ?: "알 수 없는 에러가 발생했습니다."
-            )
-        }
-
         fun createDomainErrorResponse(statusCode: Int, exception: DomainException): ErrorResponse {
             return ErrorResponse(
                 statusCode = statusCode,
@@ -25,6 +17,5 @@ data class ErrorResponse(
                 message = exception.message ?: "도메인 에러가 발생했습니다."
             )
         }
-
     }
 }

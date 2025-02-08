@@ -6,15 +6,17 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 
 @Entity
-class Coupon(userId: Long) {
+class Coupon constructor(
+    @Column(unique = true, nullable = false)
+    val userId: Long
+) {
     @Id
     @CouponId
     val id: String? = null
 
-    @Column(unique = true)
-    final var userId: Long? = null
-
-    init {
-        this.userId = userId
+    companion object{
+        fun create(userId: Long): Coupon {
+            return  Coupon(userId)
+        }
     }
 }
