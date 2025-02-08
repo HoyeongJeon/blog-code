@@ -1,6 +1,6 @@
-package blog.couponwithlock.domain
+package blog.couponwithlock.coupon.domain
 
-import blog.couponwithlock.infrastructure.CouponId
+import blog.couponwithlock.coupon.infrastructure.CouponId
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id

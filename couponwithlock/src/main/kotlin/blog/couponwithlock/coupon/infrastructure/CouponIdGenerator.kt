@@ -1,4 +1,4 @@
-package blog.couponwithlock.infrastructure
+package blog.couponwithlock.coupon.infrastructure
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor
 import org.hibernate.id.IdentifierGenerator

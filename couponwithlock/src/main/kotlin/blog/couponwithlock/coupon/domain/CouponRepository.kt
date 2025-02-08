@@ -1,4 +1,4 @@
-package blog.couponwithlock.domain
+package blog.couponwithlock.coupon.domain
 
 import org.springframework.data.jpa.repository.JpaRepository
 
