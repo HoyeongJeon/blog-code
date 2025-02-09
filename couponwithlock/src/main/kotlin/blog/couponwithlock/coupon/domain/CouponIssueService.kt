@@ -9,7 +9,7 @@ class CouponIssueService(private val couponRepository: CouponRepository) {
         couponRepository.findByUserId(userId)?.let {
             return it
         }
-        if (couponRepository.count() >= 100) {
+        if (couponRepository.count() > 100) {
             throw CouponErrorCode.ALL_COUPON_ISSUED.toException()
         }
         return couponRepository.save(Coupon.create(userId))
