@@ -30,7 +30,6 @@ export default function () {
     const res = http.post('http://localhost:8080/api/v1/coupon/issue', payload, params);
 
     if (res.status !== 200 && res.status !== 404) {
-        non200Or404Counter.add(1);
         console.log(`예상 외 응답: ${res.status}, userId: ${userId}, 응답 내용: ${res.body}`);
     }
 
