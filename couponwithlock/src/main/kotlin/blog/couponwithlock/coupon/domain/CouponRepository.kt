@@ -1,18 +1,11 @@
 package blog.couponwithlock.coupon.domain
 
-import jakarta.persistence.LockModeType
-import jakarta.persistence.QueryHint
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Lock
-import org.springframework.data.jpa.repository.QueryHints
+import org.springframework.data.jpa.repository.Query
 
 interface CouponRepository : JpaRepository<Coupon, Int>{
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints(
-        QueryHint(name = "jakarta.persistence.lock.timeout", value = "5000")
-    )
     fun findByUserId(userId: Long): Coupon?
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    override fun count(): Long
+    @Query("SELECT c FROM Coupon c WHERE c.userId IS NULL ORDER BY c.id ASC LIMIT 1")
+    fun findFirstByUserIdIsNullOrderByIdAsc(): Coupon?
 }
