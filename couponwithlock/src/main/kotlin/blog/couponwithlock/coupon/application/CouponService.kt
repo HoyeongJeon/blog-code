@@ -12,6 +12,6 @@ class CouponService(
 ) {
     @Transactional
     fun issueCoupon(couponIssueRequest: CouponIssueRequest): CouponIssueResponse {
-        return CouponIssueResponse(couponIssueService.issueCoupon(couponIssueRequest.userId).id!!)
+        return CouponIssueResponse(couponIssueService.issueCoupon(couponIssueRequest.userId)?.code!!)
     }
 }
