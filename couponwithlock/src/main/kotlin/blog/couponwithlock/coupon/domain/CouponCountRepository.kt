@@ -12,4 +12,12 @@ class CouponCountRepository(
             .opsForValue()
             .increment("couponCount")
     }
+
+    fun count(): Int?{
+        return redisTemplate.opsForValue().get("couponCount")?.toInt()
+    }
+
+    fun reset() {
+        redisTemplate.delete("couponCount")
+    }
 }
