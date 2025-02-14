@@ -1,6 +1,7 @@
-package backend_springboot.config;
+package backend_springboot.config.configuration;
 
 import backend_springboot.config.argumentresolver.AuthorizedMemberArgumentResolver;
+import backend_springboot.config.argumentresolver.ClientIpArgumentResolver;
 import backend_springboot.config.interceptor.AuthorizationInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,8 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     private final AuthorizedMemberArgumentResolver authorizedMemberArgumentResolver;
 
+    private final ClientIpArgumentResolver clientIpArgumentResolver;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
@@ -29,6 +32,7 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(clientIpArgumentResolver);
         resolvers.add(authorizedMemberArgumentResolver);
     }
 

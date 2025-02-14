@@ -1,12 +1,12 @@
 package backend_springboot.domain.auth.api;
 
-import backend_springboot.config.argumentresolver.AuthorizedMember;
-import backend_springboot.config.interceptor.Authorization;
+import backend_springboot.config.argumentresolver.ClientIp;
 import backend_springboot.domain.auth.application.AuthService;
 import backend_springboot.domain.auth.application.RotateAccessTokenService;
-import backend_springboot.domain.auth.domain.entity.User;
 import backend_springboot.domain.auth.dto.request.LoginRequest;
 import backend_springboot.domain.auth.dto.request.SignupRequest;
+import backend_springboot.domain.auth.dto.response.LoginResponse;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +14,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.net.URI;
 
 @Slf4j
@@ -25,27 +26,34 @@ public class AuthController {
     private final RotateAccessTokenService rotateAccessTokenService;
 
     @PostMapping("signup")
-    public void signup(@RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<String> signup(@RequestBody SignupRequest signupRequest) {
         authService.signup(signupRequest);
+        return ResponseEntity.ok().body("회원가입 되었습니다!");
     }
 
     @PostMapping("login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        String accessToken = authService.login(loginRequest);
+    public ResponseEntity<?> login(@ClientIp String ip, @RequestBody LoginRequest loginRequest) {
+        LoginResponse loginResponse = authService.login(loginRequest, ip);
 
-        ResponseCookie cookie = ResponseCookie.from("access_token", accessToken)
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", loginResponse.accessToken())
+                .httpOnly(true)
+                .path("/")
+                .build();
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", loginResponse.refreshToken())
                 .httpOnly(true)
                 .path("/")
                 .build();
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .build();
     }
 
     @PostMapping("/rotate")
-    public ResponseEntity<?> rotate(@CookieValue("access_token") String accessToken) {
-        String newAccessToken = rotateAccessTokenService.rotateAccessToken(accessToken);
+    public ResponseEntity<?> rotate(@CookieValue("refresh_token") String refreshToken, @ClientIp String ip) throws IOException, GeoIp2Exception {
+        String newAccessToken = rotateAccessTokenService.rotateAccessToken(refreshToken, ip);
         ResponseCookie cookie = ResponseCookie.from("access_token", newAccessToken)
                 .httpOnly(true)
                 .path("/")
@@ -55,25 +63,27 @@ public class AuthController {
 
         return ResponseEntity.created(location)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .build();
-    }
-
-    @Authorization
-    @GetMapping("/health")
-    public String health(@AuthorizedMember User user) {
-        return "건강합니다. - 스프링부트";
+                .body("액세스 토큰 재발급에 성공했습니다.");
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
-        ResponseCookie cookie = ResponseCookie.from("access_token", "") // 값을 비움
+        ResponseCookie logoutAccessTokenCookie = ResponseCookie.from("access_token", "")
                 .httpOnly(true)
                 .path("/")
-                .maxAge(0) // 쿠키를 즉시 만료
+                .maxAge(0)
                 .build();
 
+        ResponseCookie logoutRefreshTokenCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, logoutAccessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, logoutRefreshTokenCookie.toString())
                 .body("로그아웃 성공!");
     }
 }

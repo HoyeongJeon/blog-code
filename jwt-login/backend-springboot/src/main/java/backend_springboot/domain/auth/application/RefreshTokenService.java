@@ -10,37 +10,24 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class RefreshTokenService {
-    private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public RefreshTokenService(JwtService jwtService, RefreshTokenRepository refreshTokenRepository) {
-        this.jwtService = jwtService;
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    public void saveRefreshToken(User user) {
+    public void saveRefreshToken(User user, String refreshToken) {
         long REFRESH_TOKEN_EXPIRATION = 60 * 60 * 24 * 7;
         refreshTokenRepository.save(
+                refreshToken,
                 user.getId(),
-                jwtService.provideRefreshToken(user),
                 REFRESH_TOKEN_EXPIRATION,
                 convertChronoUnitToTimeUnit(ChronoUnit.DAYS)
         );
     }
 
-    public String getRefreshToken(Long userId) {
-        String refreshToken = refreshTokenRepository.findByMemberId(userId);
-
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            log.error("리프레시 토큰이 저장소에 존재하지 않습니다.");
-            throw new RuntimeException();
-        }
-
-        return refreshToken;
-    }
-
-    public void deleteRefreshToken(Long userId) {
-        refreshTokenRepository.deleteByMemberId(userId);
+    public void deleteRefreshToken(String refreshToken) {
+        refreshTokenRepository.deleteRefreshToken(refreshToken);
     }
 
     private TimeUnit convertChronoUnitToTimeUnit(ChronoUnit chronoUnit) {

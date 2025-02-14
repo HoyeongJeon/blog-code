@@ -1,10 +1,15 @@
 package backend_springboot.domain.auth.application;
 
+import backend_springboot.config.application.GeoLocationService;
 import backend_springboot.domain.auth.domain.entity.User;
 import backend_springboot.domain.auth.dto.UserRepository;
+import backend_springboot.domain.auth.infrastructure.redis.repository.RefreshTokenRedisRepository;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -13,34 +18,31 @@ public class RotateAccessTokenService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRedisRepository refreshTokenRedisRepository;
+    private final GeoLocationService geoLocationService;
 
-    public String rotateAccessToken(String accessToken) {
-        Long userIdFromInvalidAccessToken = jwtService.extractUserIdFromInvalidAccessToken(accessToken);
-        User user = userRepository.findById(userIdFromInvalidAccessToken).orElseThrow();
-        String refreshToken = refreshTokenService.getRefreshToken(user.getId());
-        if (refreshToken == null) {
-            throw new IllegalArgumentException("Refresh token is not exist");
+    public String rotateAccessToken(String refreshToken, String newIp) throws IOException, GeoIp2Exception {
+        isValidRefreshToken(refreshToken);
+        String savedIp = jwtService.getPayload(refreshToken).get("ip", String.class);
+        if (geoLocationService.checkUserLocation(newIp, savedIp)) {
+            refreshTokenService.deleteRefreshToken(refreshToken);
+            log.error("100km 밖에서 토큰 재발급을 시도했습니다.");
+            // 실제 구현에선 401에러를 반환하도록 한다.
+            throw new IllegalArgumentException();
         }
-        Long userId = extractUserIdFromRefreshToken(refreshToken);
-        validateRefreshToken(userId, refreshToken);
+        log.info("정상 범위 내에서 토큰 재발급을 시도했습니다.");
+        Long userId = refreshTokenRedisRepository.findUserId(refreshToken);
+        User user = userRepository.findById(userId).orElseThrow();
 
         return jwtService.provideAccessToken(user);
     }
 
-    private Long extractUserIdFromRefreshToken(String refreshToken) {
-        if (refreshToken == null) {
-            log.error("쿠키에 refreshToken이 존재하지 않습니다.");
+    private void isValidRefreshToken(String refreshToken) {
+        if (refreshTokenRedisRepository.findByRefreshToken(refreshToken).isEmpty()) {
+            log.error("Redis에 refreshToken이 존재하지 않습니다.");
             throw new IllegalArgumentException();
         }
-        return jwtService.extractMemberId(refreshToken);
-    }
 
-    private void validateRefreshToken(Long userId, String refreshToken) {
-        String savedRefreshToken = refreshTokenService.getRefreshToken(userId);
-        if (!savedRefreshToken.equals(refreshToken)) {
-            log.error("리프레시 토큰이 저장소에 존재하지 않습니다.");
-            throw new IllegalArgumentException();
-        }
+        jwtService.getPayload(refreshToken);
     }
-
 }

@@ -7,6 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.Date;
 import java.util.Map;
 
 @Service
+@Log4j2
 public class JwtService {
     @Getter
     @RequiredArgsConstructor
@@ -33,7 +35,7 @@ public class JwtService {
     public JwtService(@Value("${jwt.secret}") String secret) {
         this.SECRET_KEY = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.ACCESS_EXPIRATION = 5;
-        this.REFRESH_EXPIRATION = 60 * 60 * 24 * 7;
+        this.REFRESH_EXPIRATION = 10;
     }
 
     public String provideAccessToken(User user) {
@@ -41,17 +43,18 @@ public class JwtService {
                 user.getEmail(),
                 user.getId(),
                 Type.ACCESS,
-                ACCESS_EXPIRATION
+                ACCESS_EXPIRATION,
+                ""
         );
     }
 
-
-    public String provideRefreshToken(User user) {
+    public String provideRefreshToken(User user, String ip) {
         return provideToken(
                 user.getEmail(),
                 user.getId(),
                 Type.REFRESH,
-                REFRESH_EXPIRATION
+                REFRESH_EXPIRATION,
+                ip
         );
     }
 
@@ -79,33 +82,29 @@ public class JwtService {
         }
     }
 
-    private String provideToken(String email, Long id, Type type, long expiration) {
-        Date expiryDate = Date.from(Instant.now().plus(expiration, ChronoUnit.SECONDS));
+    private String provideToken(String email, Long id, Type type, long expiration, String ip) {
+        Date expiryDate;
+        Map<String, String> claims;
+        if (type.equals(Type.ACCESS)) {
+            claims = Map.of(
+                    "userId", id.toString(),
+                    "email", email
+            );
+            expiryDate = Date.from(Instant.now().plus(expiration, ChronoUnit.SECONDS));
+            log.info("액세스 만료기간 {}" , expiryDate );
+        } else {
+            claims = Map.of(
+                    "ip", ip
+            );
+            expiryDate = Date.from(Instant.now().plus(expiration, ChronoUnit.SECONDS));
+            log.info("리프레시 만료기간 {}" , expiryDate );
+
+        }
         return Jwts.builder()
-                .claims(Map.of(
-                        "userId", id.toString(),
-                        "email", email,
-                        "type", type.getType()))
+                .claims(claims)
                 .issuedAt(new Date())
                 .expiration(expiryDate)
                 .signWith(SECRET_KEY)
                 .compact();
-    }
-
-    public Long extractUserIdFromInvalidAccessToken(String invalidAccessToken) {
-        try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(SECRET_KEY)
-                    .build()
-                    .parseSignedClaims(invalidAccessToken)
-                    .getPayload();
-            String userId = claims.get("userId", String.class);
-            return Long.parseLong(userId);
-        } catch (ExpiredJwtException e) {
-            String userId = e.getClaims().get("userId", String.class);
-            return Long.parseLong(userId);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to extract userId from invalid token", e);
-        }
     }
 }

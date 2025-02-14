@@ -17,10 +17,10 @@ public class RefreshTokenRedisRepository implements RefreshTokenRepository {
     private final RedisTemplate<String, String> redisTemplate;
 
     @Override
-    public void save(Long memberId, String refreshToken, Long expireTime, TimeUnit timeUnit) {
+    public void save(String refreshToken, Long memberId, Long expireTime, TimeUnit timeUnit) {
         try {
             ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-            valueOperations.set(memberId.toString(), refreshToken, expireTime, timeUnit);
+            valueOperations.set(refreshToken, memberId.toString(), expireTime, timeUnit);
         } catch (RedisConnectionException e) {
             log.error("Redis 연결 오류 : {}", e.getMessage());
             throw new RuntimeException();
@@ -30,10 +30,10 @@ public class RefreshTokenRedisRepository implements RefreshTokenRepository {
     }
 
     @Override
-    public String findByMemberId(Long memberId) {
+    public String findByRefreshToken(String refreshToken) {
         try {
             ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-            return valueOperations.get(memberId.toString());
+            return valueOperations.get(refreshToken);
         } catch (RedisConnectionException e) {
             log.error("Redis 연결 오류 : {}", e.getMessage());
             throw new RuntimeException();
@@ -43,9 +43,27 @@ public class RefreshTokenRedisRepository implements RefreshTokenRepository {
     }
 
     @Override
-    public void deleteByMemberId(Long userId) {
+    public Long findUserId(String refreshToken) {
         try {
-            redisTemplate.delete(userId.toString());
+            ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+            String userId = valueOperations.get(refreshToken);
+            if (userId == null) {
+                log.warn("리프레시 토큰에 해당하는 사용자 없음: {}", refreshToken);
+                return null;
+            }
+            return Long.parseLong(userId);
+        } catch (RedisConnectionException e) {
+            log.error("Redis 연결 오류 : {}", e.getMessage());
+            throw new RuntimeException();
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+    }
+
+    @Override
+    public void deleteRefreshToken(String refreshToken) {
+        try {
+            redisTemplate.delete(refreshToken);
         } catch (RedisConnectionException e) {
             log.error("Redis 연결 오류 : {}", e.getMessage());
         } catch (Exception e) {
