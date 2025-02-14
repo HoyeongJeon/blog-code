@@ -6,7 +6,7 @@ export default function Main() {
   const logout = useAuthStore((state) => state.logout);
   const api = useApi();
   const handleLogout = async () => {
-    await api.post("/v1/logout");
+    await api.post("/auth/logout");
     logout();
   };
 

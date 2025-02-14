@@ -59,7 +59,7 @@ export const createApi = (logoutFn: () => void) => {
 
         try {
           console.log("토큰 재발급 요청");
-          const response = await instance.post("/v1/token/rotate", {});
+          const response = await instance.post("/auth/rotate", {});
           if (response.status === 200) {
             isRefreshing = false;
             processQueue(null);
@@ -70,7 +70,7 @@ export const createApi = (logoutFn: () => void) => {
           isRefreshing = false;
           processQueue(refreshError as AxiosError);
           console.log("토큰 재발급 실패");
-          await instance.post("/v1/logout", {});
+          await instance.post("/auth/logout", {});
           logoutFn();
           return Promise.reject(refreshError);
         }
