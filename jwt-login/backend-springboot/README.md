@@ -8,6 +8,10 @@ AT 에 들어가는 값
 
 RT 에 들어가는 값 {"ip"}
 
+Redis에 저장되는 구조 { 
+key : refresh token
+value: userId }
+
 **AT 만료 시**
 
 ```mermaid
@@ -20,3 +24,4 @@ E --> F[IP 간 거리 계산 - 저장 IP vs 재발급 요청 시 받은 IP]
 F -->|거리 > 100km| H[거부: 403 Forbidden]
 F -->|거리 <= 100km| I[액세스 토큰/리프레시 토큰 재발급]
 ```
+
