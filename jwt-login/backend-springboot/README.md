@@ -25,3 +25,13 @@ F -->|거리 > 100km| H[거부: 403 Forbidden]
 F -->|거리 <= 100km| I[액세스 토큰/리프레시 토큰 재발급]
 ```
 
+- IP 추출을 위한 ArgumentResolver 구현체
+https://github.com/HoyeongJeon/blog-code/blob/11f3ab93d6644927271e356f70bdee49e022a1cc/jwt-login/backend-springboot/src/main/java/backend_springboot/config/argumentresolver/ClientIpArgumentResolver.java#L17
+
+
+- 위치 관련 서비스
+https://github.com/HoyeongJeon/blog-code/blob/11f3ab93d6644927271e356f70bdee49e022a1cc/jwt-login/backend-springboot/src/main/java/backend_springboot/config/application/GeoLocationService.java#L21
+
+
+- 두 좌표 사이 거리를 구하는 유틸함수
+https://github.com/HoyeongJeon/blog-code/blob/11f3ab93d6644927271e356f70bdee49e022a1cc/jwt-login/backend-springboot/src/main/java/backend_springboot/config/utils/GeoUtil.java#L4
