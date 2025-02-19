@@ -91,14 +91,11 @@ public class JwtService {
                     "email", email
             );
             expiryDate = Date.from(Instant.now().plus(expiration, ChronoUnit.SECONDS));
-            log.info("액세스 만료기간 {}" , expiryDate );
         } else {
             claims = Map.of(
                     "ip", ip
             );
             expiryDate = Date.from(Instant.now().plus(expiration, ChronoUnit.SECONDS));
-            log.info("리프레시 만료기간 {}" , expiryDate );
-
         }
         return Jwts.builder()
                 .claims(claims)

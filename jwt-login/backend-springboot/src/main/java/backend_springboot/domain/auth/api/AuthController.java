@@ -6,6 +6,8 @@ import backend_springboot.domain.auth.application.RotateAccessTokenService;
 import backend_springboot.domain.auth.dto.request.LoginRequest;
 import backend_springboot.domain.auth.dto.request.SignupRequest;
 import backend_springboot.domain.auth.dto.response.LoginResponse;
+import backend_springboot.domain.auth.dto.response.RotateTokenResponse;
+import backend_springboot.domain.auth.exception.AuthException;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,8 +55,14 @@ public class AuthController {
 
     @PostMapping("/rotate")
     public ResponseEntity<?> rotate(@CookieValue("refresh_token") String refreshToken, @ClientIp String ip) throws IOException, GeoIp2Exception {
-        String newAccessToken = rotateAccessTokenService.rotateAccessToken(refreshToken, ip);
-        ResponseCookie cookie = ResponseCookie.from("access_token", newAccessToken)
+        RotateTokenResponse rotateTokens = rotateAccessTokenService.rotateToken(refreshToken, ip);
+
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", rotateTokens.accessToken())
+                .httpOnly(true)
+                .path("/")
+                .build();
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", rotateTokens.refreshToken())
                 .httpOnly(true)
                 .path("/")
                 .build();
@@ -62,8 +70,9 @@ public class AuthController {
         URI location = URI.create("/auth/rotate");
 
         return ResponseEntity.created(location)
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body("액세스 토큰 재발급에 성공했습니다.");
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body("토큰 재발급에 성공했습니다.");
     }
 
     @PostMapping("/logout")
@@ -85,5 +94,10 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, logoutAccessTokenCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, logoutRefreshTokenCookie.toString())
                 .body("로그아웃 성공!");
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> test() {
+        throw new AuthException("jwt.invalid-token");
     }
 }

@@ -1,7 +1,6 @@
 package backend_springboot.config.application;
 
 import backend_springboot.config.dto.response.Coordinate;
-import backend_springboot.domain.auth.application.RefreshTokenService;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;

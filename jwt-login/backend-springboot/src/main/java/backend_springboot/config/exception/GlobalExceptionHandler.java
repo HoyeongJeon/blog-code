@@ -1,18 +1,28 @@
 package backend_springboot.config.exception;
 
+import backend_springboot.config.utils.ErrorMessageUtil;
+import backend_springboot.domain.auth.exception.AuthException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED) // 401 상태코드 지정
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+
+    private final ErrorMessageUtil errorMessageUtil;
+
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<String> handleAuthException(DomainException e) {
+        HttpStatus httpStatus = e.getHttpStatus() != null ? e.getHttpStatus() : HttpStatus.UNAUTHORIZED;
+        String errorMessage = errorMessageUtil.getMessage(e.getMessage());
+        System.out.println("errorMessage = " + errorMessage);
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(e.getMessage());
+                .status(httpStatus)
+                .body(errorMessage);
     }
 }
