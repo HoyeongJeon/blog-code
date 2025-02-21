@@ -27,20 +27,19 @@ public class MemberService {
 
     @Transactional
     public void testAnnotation() {
-        System.out.println("// @Transactional + JPA");
-        Member member = memberRepository.findById(1L).get(); // select , 1차 캐시 저장
+        System.out.println("// testAnnotation start");
+        Member member = memberRepository.findById(1L).get();
 
-        member.setAge(35); // 1차 캐시 값이 변경됨.
+        member.setAge(35);
 
         memberRepository.save(member);
-        // Transaction이 끝나면서 쓰기 지연 저장소의 쿼리가 나감!
     }
 
     public void testNoneAnnotation() {
         System.out.println("// JPA만 사용하기(@Transactional 이 없는 경우)");
-        Member member = memberRepository.findById(1L).get(); // select , @Transactional이 없으므로 1차 캐시 저장 X , 영속성 컨텍스트가 생성되지 않음, 준영속 상태이다.
+        Member member = memberRepository.findById(1L).get();
 
-        member.setAge(35); // 준영속 상태이므로 변경 감지가 일어나지 않음. 메모리 상의 age 값만 변경됨.
+        member.setAge(35);
 
         memberRepository.save(member);
         System.out.println("result: " + member.getAge());
@@ -52,16 +51,16 @@ public class MemberService {
         Member member1 = memberRepository.findById(1L).get();
         Member member2 = memberRepository.findById(1L).get();
 
-        System.out.println("result" + (member1 == member2));
+        System.out.println("result : " + (member1 == member2));
     }
 
     @Transactional
     public void testJPQL() {
         System.out.println("// testJPQL start");
-        Member member1 = memberRepository.findById(1L).get();
         Member member2 = memberRepository.findByIdWithJPQL(1L);
+        Member member1 = memberRepository.findById(1L).get();
 
-        System.out.println("result" + (member1 == member2));
+        System.out.println("result : " + (member1 == member2));
     }
 
     @Transactional
@@ -70,7 +69,7 @@ public class MemberService {
         Member member1 = memberRepository.findById(1L).get();
         Member member2 = memberRepository.findByIdWithNative(1L);
 
-        System.out.println("result" + (member1 == member2));
+        System.out.println("result : " + (member1 == member2));
     }
 
     @Transactional
@@ -79,18 +78,18 @@ public class MemberService {
         Member member = memberRepository.findById(1L).get();
         member.setAge(35);
         entityManager.flush();
-        System.out.println("result" + member.getAge());
+        System.out.println("result : " + member.getAge());
         memberRepository.save(member);
     }
 
     @Transactional
     public void testHell() {
+        System.out.println("// testHell start");
         Member alice = memberRepository.findById(1L).get();
         Member bob = memberRepository.findById(2L).get();
 
         alice.setAge(40);
         memberRepository.delete(bob);
-
         Member newAlice = memberRepository.findByIdWithJPQL(1L);
         Member newBob = new Member(2L, "Bob", 99);
         entityManager.persist(newBob);
@@ -100,6 +99,8 @@ public class MemberService {
 
         memberRepository.save(newAlice);
         memberRepository.save(nativeBob);
+        System.out.println("newAlice 나이는 ? : " + newAlice.getAge());
+        System.out.println("nativeBob 나이는 ? : " + nativeBob.getAge());
     }
 
 }

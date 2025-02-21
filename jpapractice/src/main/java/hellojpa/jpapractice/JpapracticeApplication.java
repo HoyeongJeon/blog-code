@@ -29,11 +29,11 @@ class StartupRunner implements ApplicationRunner {
         memberService.insertMembersForTest();
 
 //        memberService.testAnnotation();
-        memberService.testNoneAnnotation();
+//        memberService.testNoneAnnotation();
 //        memberService.testJPA();
 //        memberService.testJPQL();
 //        memberService.testNativeQuery();
 //        memberService.testFlush();
-//        memberService.testHell();
+        memberService.testHell();
     }
 }
